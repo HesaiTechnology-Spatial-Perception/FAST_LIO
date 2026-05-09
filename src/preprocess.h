@@ -14,7 +14,7 @@ using namespace std;
 typedef pcl::PointXYZINormal PointType;
 typedef pcl::PointCloud<PointType> PointCloudXYZI;
 
-enum LID_TYPE{AVIA = 1, VELO16, OUST64, MARSIM}; //{1, 2, 3}
+enum LID_TYPE{AVIA = 1, VELO16, OUST64, MARSIM, JT16, JT128}; //{1, 2, 3, 4, 5, 6}
 enum TIME_UNIT{SEC = 0, MS = 1, US = 2, NS = 3};
 enum Feature{Nor, Poss_Plane, Real_Plane, Edge_Jump, Edge_Plane, Wire, ZeroPoint};
 enum Surround{Prev, Next};
@@ -83,6 +83,25 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(ouster_ros::Point,
     (std::uint32_t, range, range)
 )
 
+namespace hesai_point_type {
+  struct EIGEN_ALIGN16 Point {
+      PCL_ADD_POINT4D;
+      float intensity;
+      uint16_t ring;
+      double timestamp;
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  };
+}  // namespace hesai_point_type
+
+POINT_CLOUD_REGISTER_POINT_STRUCT(hesai_point_type::Point,
+    (float, x, x)
+    (float, y, y)
+    (float, z, z)
+    (float, intensity, intensity)
+    (uint16_t, ring, ring)
+    (double, timestamp, timestamp)
+)
+
 class Preprocess
 {
   public:
@@ -110,6 +129,7 @@ class Preprocess
   void avia_handler(const livox_ros_driver::CustomMsg::ConstPtr &msg);
   void oust64_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
   void velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
+  void hesai_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
   void sim_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
   void give_feature(PointCloudXYZI &pl, vector<orgtype> &types);
   void pub_func(PointCloudXYZI &pl, const ros::Time &ct);

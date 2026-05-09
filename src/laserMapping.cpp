@@ -95,6 +95,7 @@ bool   point_selected_surf[100000] = {0};
 bool   lidar_pushed, flg_first_scan = true, flg_exit = false, flg_EKF_inited;
 bool   scan_pub_en = false, dense_pub_en = false, scan_body_pub_en = false;
 int lidar_type;
+bool imu_gyr_is_deg = false;
 
 vector<vector<int>>  pointSearchInd_surf; 
 vector<BoxPointType> cub_needrm;
@@ -344,6 +345,13 @@ void imu_cbk(const sensor_msgs::Imu::ConstPtr &msg_in)
     {
         msg->header.stamp = \
         ros::Time().fromSec(timediff_lidar_wrt_imu + msg_in->header.stamp.toSec());
+    }
+
+    if (imu_gyr_is_deg)
+    {
+        msg->angular_velocity.x *= M_PI / 180.0;
+        msg->angular_velocity.y *= M_PI / 180.0;
+        msg->angular_velocity.z *= M_PI / 180.0;
     }
 
     double timestamp = msg->header.stamp.toSec();
@@ -785,6 +793,9 @@ int main(int argc, char** argv)
     nh.param<int>("preprocess/scan_rate", p_pre->SCAN_RATE, 10);
     nh.param<int>("point_filter_num", p_pre->point_filter_num, 2);
     nh.param<bool>("feature_extract_enable", p_pre->feature_enabled, false);
+    string imu_gyr_unit_str;
+    nh.param<string>("common/imu_gyr_unit", imu_gyr_unit_str, "rad");
+    imu_gyr_is_deg = (imu_gyr_unit_str == "deg");
     nh.param<bool>("runtime_pos_log_enable", runtime_pos_log, 0);
     nh.param<bool>("mapping/extrinsic_est_en", extrinsic_est_en, true);
     nh.param<bool>("pcd_save/pcd_save_en", pcd_save_en, false);
